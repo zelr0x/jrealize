@@ -1,5 +1,7 @@
 plugins {
     id 'java'
+    id 'idea'
+    id 'checkstyle'
 }
 
 group 'io.github.zelr0x'
@@ -13,4 +15,26 @@ repositories {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
+    implementation 'com.puppycrawl.tools:checkstyle:8.20'
+}
+
+checkstyle {
+    toolVersion = 8.2
+    configFile = rootProject.file('config/checkstyle/checkstyle.xml')
+    reportsDir = file("$project.buildDir/reports/checkstyle")
+    ignoreFailures = false
+}
+checkstyleTest.enabled false
+tasks.withType(Checkstyle) {
+    reports {
+        xml.enabled false
+        html.enabled true
+        html.stylesheet resources.text.fromFile(
+                "$project.rootDir/config/checkstyle/checkstyle-custom.xsl")
+    }
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
 }
