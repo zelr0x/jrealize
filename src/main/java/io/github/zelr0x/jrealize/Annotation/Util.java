@@ -55,7 +55,7 @@ public final class Util {
         }
 
         while (!isSerializable(fieldValue)) {
-            fieldValue = invokeAnnotatedMethod(fieldValue, getter);
+            fieldValue = serialize(fieldValue, getter);
         }
         return fieldValue.toString();
     }
@@ -68,7 +68,7 @@ public final class Util {
      * @param annotation an annotation to look for in methods of the target
      * @return the result of method invocation on the target
      */
-    private static Object invokeAnnotatedMethod(final Object target,
+    private static Object serialize(final Object target,
             final Class<? extends Annotation> annotation) {
         if (isSerializable(target)) return target.toString();
 
@@ -80,17 +80,9 @@ public final class Util {
             throw new RuntimeException("Class can only have "
                     + MAX_GETTERS
                     + " methods marked with serialization getter annotation");
-        } else if (annotatedMethodCount == 0) {
-            return target.toString();
-        }
+        } else if (annotatedMethodCount == 0) return target.toString();
 
-        final Method annotatedGetter = annotatedMethods[0];
-        try {
-            return annotatedGetter.invoke(target);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
-            throw new IllegalAccessError(ILLEGAL_ACCESS_MESSAGE);
-        }
+        return invoke(target, annotatedMethods[0]);
     }
 
     /**
@@ -120,8 +112,7 @@ public final class Util {
             res = method.invoke(target);
         } catch (IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
-            throw new IllegalAccessError("Illegal access. "
-                    + "Please report the details to the maintainer");
+            throw new IllegalAccessError(ILLEGAL_ACCESS_MESSAGE);
         }
         return res;
     }
@@ -131,51 +122,11 @@ public final class Util {
      * A value is considered suitable for serialization if it at least one of:
      * - of primitive type
      * - of type String
-     * - is annotated with @Csv(useToString = true)
-     * - enum value
-     * Enums can contain annotated getters which will be invoked instead of
-     * toString() if present because annotation is checked first.
      * @param obj an object to check
-     * @return true if the value is primitive, String, has useToString @csv
-     * or @json parameter or is a value of enum
+     * @return true if the value is primitive or String
      */
     private static boolean isSerializable(final Object obj) {
         final var clazz = obj.getClass();
-        return isSerializableClass(clazz)
-                || ((isField(obj)
-                    && hasToStringParameter((Field) obj)))
-                || clazz.isEnum();
-    }
-
-    /**
-     * Checks if the class is suitable to serialization by this lib.
-     * @param clazz class to check
-     * @return true if class is primitive or String
-     */
-    private static boolean isSerializableClass(final Class clazz) {
         return clazz.isPrimitive() || clazz.equals(String.class);
-    }
-
-    /**
-     * Checks if a provided object is a field.
-     * @param obj object to check
-     * @return true if the object is an instance of type Field
-     */
-    private static boolean isField(final Object obj) {
-        return obj.getClass().isInstance(Field.class);
-    }
-
-    /**
-     * Checks if toString() should be used to serialize a field value.
-     * @param field a field to check
-     * @return true if a field has useToString set to true
-     */
-    private static boolean hasToStringParameter(final Field field) {
-        // It's ugly but simpler this way, because there are no annotation
-        // inheritance currently and other ways are too heavy for this case
-        if (field.isAnnotationPresent(Json.class)) {
-            return field.getAnnotation(Json.class).useToString();
-        }
-        return field.getAnnotation(Csv.class).useToString();
     }
 }

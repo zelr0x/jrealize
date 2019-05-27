@@ -16,13 +16,4 @@ public @interface Csv {
      * @return CSV column number
      */
     int col();
-
-    /**
-     * Specifies if toString() should be used. Without this parameter,
-     * every non-primitive non-String field type requires a method
-     * marked with @CsvGetter annotation.
-     * @return true if toString() should be used to retrieve a field's
-     * value instead of @CsvGetter
-     */
-    boolean useToString() default false;
 }

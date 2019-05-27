@@ -16,12 +16,4 @@ import java.lang.annotation.Target;
      * @return the name of the field
      */
     String name() default "";
-    /**
-     * Specifies if toString() should be used. Without this parameter,
-     * every non-primitive non-String field type requires a method
-     * marked with @JsonGetter annotation.
-     * @return true if toString() should be used to retrieve a field's
-     * value instead of @JsonGetter
-     */
-    boolean useToString() default false;
 }

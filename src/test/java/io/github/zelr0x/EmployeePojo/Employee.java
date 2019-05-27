@@ -7,7 +7,7 @@ public class Employee {
     private String firstName;
     @Csv(col = 2)
     private String lastName;
-    @Csv(col = 3, useToString = true)
+    @Csv(col = 3)
     private Position position;
     @Csv(col = 4)
     private PhoneNumber number;
